@@ -3,9 +3,8 @@ import { GoogleGenAI } from "@google/genai";
 import { MonthData } from "../types";
 import { calculateSummary, formatCurrency } from "../utils/calculations";
 
-// Prioritize process.env.API_KEY as per system instructions, fallback to VITE prefix for local convenience if specified in README.
-const apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_GOOGLE_API_KEY;
-const ai = new GoogleGenAI({ apiKey: apiKey });
+// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getFinancialInsight = async (data: MonthData) => {
   const summary = calculateSummary(data);
