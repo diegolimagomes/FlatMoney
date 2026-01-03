@@ -20,7 +20,4 @@ export default defineConfig(({ mode }) => {
         }
       }
     };
-      build: {
-    input: 'index.html',
-  },
 });
