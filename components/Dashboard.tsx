@@ -30,7 +30,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
   const pieData = summary ? [
     { name: 'Despesas', value: summary.totalExpenses, color: '#f43f5e' },
     { name: 'Taxa Adm', value: summary.adminFeeAmount, color: '#6366f1' },
-    { name: 'Sócios', value: Math.max(0, summary.netProfit), color: '#10b981' }
+    { name: 'Lucro Líquido', value: Math.max(0, summary.netProfit), color: '#10b981' }
   ] : [];
 
   const handleCopy = async (text: string, id: string) => {
@@ -44,16 +44,25 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
   };
 
   const handlePrint = () => {
-    // Tenta abrir a caixa de impressão. Se estiver em um navegador mobile/app, 
-    // ele pode falhar silenciosamente, então mostramos um feedback.
     try {
+      // Pequeno feedback visual no console para debug
+      console.log("Iniciando processo de impressão...");
+      
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
-        alert("Para salvar em PDF no celular:\n1. Clique nos 3 pontinhos do seu navegador\n2. Escolha 'Compartilhar'\n3. Selecione 'Imprimir'\n4. Salve como PDF");
+      const isInstagramOrWhatsapp = /FBAN|FBAV|Instagram|WhatsApp/i.test(navigator.userAgent);
+
+      if (isInstagramOrWhatsapp) {
+          alert("Atenção: Você está em um navegador limitado.\n\nPara salvar o PDF:\n1. Clique no ícone de compartilhar (ou nos 3 pontinhos)\n2. Escolha 'Abrir no Navegador' (Chrome ou Safari)\n3. Lá o botão de PDF funcionará perfeitamente!");
+          return;
       }
+
+      if (isMobile) {
+        alert("Para salvar o PDF:\nAo abrir a tela de impressão, mude a impressora para 'Salvar como PDF'.");
+      }
+      
       window.print();
     } catch (e) {
-      alert("Seu navegador bloqueou a abertura do PDF. Tente usar o menu 'Imprimir' do próprio navegador.");
+      alert("Erro ao abrir PDF. Tente usar a função 'Imprimir' do menu do seu navegador.");
     }
   };
 
@@ -61,12 +70,12 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
     if (!lastMonth || !summary) return;
     const report = `📊 *Resumo Flat - ${lastMonth.month}/${lastMonth.year}*
 
-💰 *Faturamento:* ${formatCurrency(summary.totalRevenue)}
-💸 *Despesas:* ${formatCurrency(summary.totalExpenses)}
-🏢 *Taxa Adm:* ${formatCurrency(summary.adminFeeAmount)}
+💰 *Faturamento (Airbnb):* ${formatCurrency(summary.totalRevenue)}
+💸 *Despesas Totais:* ${formatCurrency(summary.totalExpenses)}
+🏢 *Taxa Adm (${lastMonth.adminFeePercent}%):* ${formatCurrency(summary.adminFeeAmount)}
 ✅ *Lucro Final (Líquido):* ${formatCurrency(summary.netProfit)}
 
-_Relatório FlatMoney_`;
+_Relatório gerado via FlatMoney_`;
     handleCopy(report, 'full-report');
   };
 
@@ -105,12 +114,12 @@ _Relatório FlatMoney_`;
           </div>
           <div>
             <h1 className="text-3xl font-black text-slate-800">FlatMoney</h1>
-            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Relatório Financeiro Profissional</p>
+            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Relatório Financeiro de Flat</p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-sm font-bold text-slate-400 uppercase">Período</p>
-          <p className="text-xl font-black text-slate-800">{lastMonth?.month} / {lastMonth?.year}</p>
+          <p className="text-sm font-bold text-slate-400 uppercase leading-none mb-1">Período de Referência</p>
+          <p className="text-xl font-black text-slate-800 leading-none">{lastMonth?.month} de {lastMonth?.year}</p>
         </div>
       </div>
 
@@ -199,8 +208,8 @@ _Relatório FlatMoney_`;
                   contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: 'bold'}}
                   formatter={(value: number, name: string) => [formatCurrency(value), name]}
                 />
-                <Bar dataKey="Faturamento" fill="#10b981" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Lucro" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                <Bar name="Faturamento" dataKey="Faturamento" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar name="Lucro Final" dataKey="Lucro" fill="#6366f1" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -210,7 +219,7 @@ _Relatório FlatMoney_`;
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 print:shadow-none print:border-slate-200">
           <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
             <i className="fa-solid fa-chart-pie text-emerald-500 print:hidden"></i>
-            Divisão do Bolo
+            Distribuição do Valor
           </h3>
           <div className="h-[250px] w-full relative">
             <ResponsiveContainer width="100%" height="100%">
@@ -240,7 +249,7 @@ _Relatório FlatMoney_`;
               <div key={item.name} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full" style={{backgroundColor: item.color}}></div>
-                  <span className="text-slate-500">{item.name}</span>
+                  <span className="text-slate-500 font-medium">{item.name}</span>
                 </div>
                 <span className="font-bold text-slate-700">{formatCurrency(item.value)}</span>
               </div>
@@ -249,10 +258,10 @@ _Relatório FlatMoney_`;
         </div>
       </div>
 
-      {/* DETALHAMENTO DO RELATÓRIO (Visível na tela e sempre no PDF) */}
-      <div className={`mt-12 pt-8 border-t-2 border-slate-100 space-y-10 print:block ${showDetails ? 'block' : 'hidden'}`}>
+      {/* SEÇÃO DE DETALHAMENTO DO RELATÓRIO (Sempre no PDF) */}
+      <div id="detalhamento-relatorio" className={`mt-12 pt-8 border-t-2 border-slate-100 space-y-10 print:block ${showDetails ? 'block' : 'hidden'}`}>
         <div className="flex items-center justify-between print:hidden">
-            <h3 className="text-xl font-black text-slate-800">Detalhamento das Contas</h3>
+            <h3 className="text-xl font-black text-slate-800">Detalhamento para Conferência</h3>
             <button onClick={() => setShowDetails(false)} className="text-xs font-bold text-slate-400 hover:text-slate-600 underline">Ocultar na tela</button>
         </div>
 
@@ -261,27 +270,30 @@ _Relatório FlatMoney_`;
           <div>
             <h3 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2">
               <i className="fa-solid fa-receipt text-rose-500"></i>
-              O que foi gasto este mês:
+              Composição das Despesas:
             </h3>
             <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
               <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="bg-slate-50 border-b border-slate-200 font-bold text-slate-600">
                   <tr>
-                    <th className="px-6 py-4 font-bold text-slate-600">Descrição</th>
-                    <th className="px-6 py-4 font-bold text-slate-600 text-right">Valor</th>
+                    <th className="px-6 py-4">Descrição da Conta</th>
+                    <th className="px-6 py-4 text-right">Valor Pago</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {lastMonth?.expenses.map((expense) => (
                     <tr key={expense.id}>
-                      <td className="px-6 py-4 text-slate-700">{expense.description}</td>
+                      <td className="px-6 py-4 text-slate-700 font-medium">{expense.description}</td>
                       <td className="px-6 py-4 text-slate-800 font-bold text-right">{formatCurrency(expense.amount)}</td>
                     </tr>
                   ))}
+                  {(!lastMonth?.expenses || lastMonth.expenses.length === 0) && (
+                    <tr><td colSpan={2} className="px-6 py-8 text-center text-slate-400 italic">Sem gastos listados</td></tr>
+                  )}
                 </tbody>
                 <tfoot className="bg-slate-50 border-t-2 border-slate-200 font-black">
                   <tr>
-                    <td className="px-6 py-5 text-slate-800 uppercase text-xs">Total em Despesas</td>
+                    <td className="px-6 py-5 text-slate-800 uppercase text-xs tracking-wider">Total em Contas Pagas</td>
                     <td className="px-6 py-5 text-rose-600 text-right text-lg">{formatCurrency(summary?.totalExpenses || 0)}</td>
                   </tr>
                 </tfoot>
@@ -292,27 +304,37 @@ _Relatório FlatMoney_`;
           {/* Resultado Final Detalhado */}
           <div>
             <h3 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2">
-              <i className="fa-solid fa-check-double text-emerald-500"></i>
-              Fechamento do Período
+              <i className="fa-solid fa-coins text-emerald-500"></i>
+              Fechamento do Lucro
             </h3>
-            <div className="p-8 bg-indigo-50 rounded-3xl border border-indigo-100 space-y-6">
+            <div className="p-8 bg-indigo-50/30 rounded-3xl border border-indigo-100 space-y-6">
               <div className="space-y-4">
                 <div className="flex justify-between items-center pb-4 border-b border-indigo-200/50">
-                  <span className="text-sm font-semibold text-indigo-700">Lucro Líquido Distribuível</span>
-                  <span className="text-xl font-black text-indigo-900">{formatCurrency(summary?.netProfit || 0)}</span>
+                  <span className="text-sm font-semibold text-indigo-700">Faturamento Bruto</span>
+                  <span className="text-lg font-bold text-indigo-900">{formatCurrency(summary?.totalRevenue || 0)}</span>
                 </div>
                 
-                <div className="pt-4">
-                  <div className="flex flex-col items-center justify-center p-8 bg-white rounded-3xl shadow-sm border border-indigo-100">
+                <div className="flex justify-between items-center text-sm font-medium text-slate-500">
+                  <span>Dedução de Despesas</span>
+                  <span className="text-rose-500">-{formatCurrency(summary?.totalExpenses || 0)}</span>
+                </div>
+
+                <div className="flex justify-between items-center text-sm font-medium text-slate-500">
+                  <span>Taxa de Administração ({lastMonth?.adminFeePercent}%)</span>
+                  <span className="text-rose-500">-{formatCurrency(summary?.adminFeeAmount || 0)}</span>
+                </div>
+
+                <div className="pt-6">
+                  <div className="flex flex-col items-center justify-center p-8 bg-white rounded-3xl shadow-sm border border-indigo-100 ring-4 ring-indigo-500/5">
                     <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Lucro Final (Líquido)</p>
                     <p className="text-4xl font-black text-emerald-600 leading-none">{formatCurrency(summary?.netProfit || 0)}</p>
                   </div>
                 </div>
 
                 <div className="p-4 bg-indigo-100/50 rounded-2xl">
-                    <p className="text-[11px] text-indigo-800 font-medium leading-relaxed">
+                    <p className="text-[10px] text-indigo-800 font-bold leading-relaxed uppercase tracking-wide">
                         <i className="fa-solid fa-circle-info mr-2"></i>
-                        Este é o valor final após o pagamento de todas as contas listadas e o desconto da taxa de administração ({lastMonth?.adminFeePercent}%) sobre o faturamento bruto.
+                        Este é o valor real disponível para distribuição ou reserva após a quitação de todas as obrigações e taxas.
                     </p>
                 </div>
               </div>
@@ -321,9 +343,17 @@ _Relatório FlatMoney_`;
         </div>
 
         <div className="text-center pt-16 text-[10px] text-slate-300 font-bold uppercase tracking-[0.3em]">
-          Gerado em {new Date().toLocaleDateString('pt-BR')} via FlatMoney
+          Documento Informativo • FlatMoney • Autogerado em {new Date().toLocaleDateString('pt-BR')}
         </div>
       </div>
+
+      {!showDetails && (
+          <div className="flex justify-center print:hidden">
+            <button onClick={() => setShowDetails(true)} className="px-6 py-2 bg-slate-100 text-slate-500 font-bold rounded-full text-xs hover:bg-slate-200 transition-colors">
+                Ver detalhamento de fechamento
+            </button>
+          </div>
+      )}
     </div>
   );
 };

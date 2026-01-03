@@ -26,13 +26,17 @@
             }
             .print\:hidden { display: none !important; }
             .print\:block { display: block !important; }
-            main { padding-top: 0 !important; padding-bottom: 0 !important; }
-            .bg-slate-50 { background-color: white !important; }
+            main { padding-top: 0 !important; padding-bottom: 0 !important; margin: 0 !important; }
+            .bg-slate-50, .bg-indigo-50 { background-color: transparent !important; }
             .shadow-sm, .shadow-xl, .shadow-2xl { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
-            .printable-content { width: 100% !important; margin: 0 !important; }
-            @page { margin: 1cm; size: auto; }
+            .printable-content { width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .rounded-3xl, .rounded-2xl { border-radius: 12px !important; }
             
-            /* Garante que gráficos apareçam */
+            /* Força a exibição da seção de detalhes no PDF mesmo que esteja oculta na tela */
+            #detalhamento-relatorio { display: block !important; visibility: visible !important; opacity: 1 !important; }
+            
+            @page { margin: 1.5cm; size: auto; }
+            
             .recharts-responsive-container {
                 width: 100% !important;
                 height: 300px !important;
