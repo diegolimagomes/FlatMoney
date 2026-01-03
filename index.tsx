@@ -29,7 +29,7 @@ const mountApp = () => {
     const boundary = document.getElementById('error-boundary');
     const details = document.getElementById('error-details');
     if (boundary) boundary.style.display = 'flex';
-    if (details) details.innerText = error instanceof Error ? error.stack : String(error);
+    if (details) details.innerText = error instanceof Error ? (error.stack || error.message) : String(error);
   }
 };
 
